@@ -29,15 +29,18 @@ import vn.fs.repository.OrderDetailRepository;
 import vn.fs.repository.OrderRepository;
 import vn.fs.repository.UserRepository;
 
+/**
+ *
+ */
 @Controller
-public class ProfileController extends CommomController{
+public class ProfileController extends CommomController {
 
 	@Autowired
 	UserRepository userRepository;
 
 	@Autowired
 	OrderRepository orderRepository;
-	
+
 	@Autowired
 	OrderDetailRepository orderDetailRepository;
 
@@ -46,7 +49,7 @@ public class ProfileController extends CommomController{
 
 	@GetMapping(value = "/profile")
 	public String profile(Model model, Principal principal, User user, Pageable pageable,
-			@RequestParam("page") Optional<Integer> page, @RequestParam("size") Optional<Integer> size) {
+						  @RequestParam("page") Optional<Integer> page, @RequestParam("size") Optional<Integer> size) {
 
 		if (principal != null) {
 
@@ -54,7 +57,7 @@ public class ProfileController extends CommomController{
 			user = userRepository.findByEmail(principal.getName());
 			model.addAttribute("user", user);
 		}
-		
+
 		int currentPage = page.orElse(1);
 		int pageSize = size.orElse(6);
 
@@ -92,7 +95,7 @@ public class ProfileController extends CommomController{
 
 		return orderPages;
 	}
-	
+
 	@GetMapping("/order/detail/{order_id}")
 	public ModelAndView detail(Model model, Principal principal, User user, @PathVariable("order_id") Long id) {
 
@@ -102,7 +105,7 @@ public class ProfileController extends CommomController{
 			user = userRepository.findByEmail(principal.getName());
 			model.addAttribute("user", user);
 		}
-		
+
 		List<OrderDetail> listO = orderDetailRepository.findByOrderId(id);
 
 //		model.addAttribute("amount", orderRepository.findById(id).get().getAmount());
@@ -111,21 +114,22 @@ public class ProfileController extends CommomController{
 		// set active front-end
 //		model.addAttribute("menuO", "menu");
 		commomDataService.commonData(model, user);
-		
+
 		return new ModelAndView("web/historyOrderDetail");
 	}
-	
-	@RequestMapping("/order/cancel/{order_id}")
 	public ModelAndView cancel(ModelMap model, @PathVariable("order_id") Long id) {
 		Optional<Order> o = orderRepository.findById(id);
-		if (!o.isPresent()) {
+		if (o.isPresent()) {
+			// Perform actions when the Optional contains a non-null value
+			Order oReal = o.get();
+			oReal.setStatus((short) 3);
+			orderRepository.save(oReal);
+		} else {
+			// Perform actions when the Optional is empty
 			return new ModelAndView("redirect:/profile", model);
 		}
-		Order oReal = o.get();
-		oReal.setStatus((short) 3);
-		orderRepository.save(oReal);
 
 		return new ModelAndView("redirect:/profile", model);
 	}
-
 }
+

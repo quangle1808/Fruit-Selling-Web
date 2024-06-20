@@ -22,7 +22,6 @@ import vn.fs.repository.UserRepository;
 
 
 /**
- * @author DongTHD
  *
  */
 @Controller

@@ -30,11 +30,9 @@ import vn.fs.service.OrderDetailService;
 import vn.fs.service.SendMailService;
 
 /**
- * @author DongTHD
  *
  */
-@Controller
-@RequestMapping("/admin")
+@Controller@RequestMapping("/admin")
 public class OrderController {
 
 	@Autowired
@@ -93,27 +91,31 @@ public class OrderController {
 	@RequestMapping("/order/cancel/{order_id}")
 	public ModelAndView cancel(ModelMap model, @PathVariable("order_id") Long id) {
 		Optional<Order> o = orderRepository.findById(id);
-		if (!o.isPresent()) {
-			return new ModelAndView("forward:/admin/orders", model);
+		if (o.isPresent()) {
+			// If the Optional is present, set the status of the Order object and save it
+			Order oReal = o.get(); // Safe to call get() since we've checked isPresent() before
+			oReal.setStatus((short) 3);
+			orderRepository.save(oReal);
 		}
-		Order oReal = o.get();
-		oReal.setStatus((short) 3);
-		orderRepository.save(oReal);
 
+// Forward the request to /admin/orders
 		return new ModelAndView("forward:/admin/orders", model);
+
 	}
 
 	@RequestMapping("/order/confirm/{order_id}")
 	public ModelAndView confirm(ModelMap model, @PathVariable("order_id") Long id) {
 		Optional<Order> o = orderRepository.findById(id);
-		if (!o.isPresent()) {
-			return new ModelAndView("forward:/admin/orders", model);
+		if (o.isPresent()) {
+			// If the Optional is present, set the status of the Order object and save it
+			Order oReal = o.get(); // Safe to call get() since we've checked isPresent() before
+			oReal.setStatus((short) 1);
+			orderRepository.save(oReal);
 		}
-		Order oReal = o.get();
-		oReal.setStatus((short) 1);
-		orderRepository.save(oReal);
 
+// Forward the request to /admin/orders
 		return new ModelAndView("forward:/admin/orders", model);
+
 	}
 
 	@RequestMapping("/order/delivered/{order_id}")
@@ -122,20 +124,22 @@ public class OrderController {
 		if (!o.isPresent()) {
 			return new ModelAndView("forward:/admin/orders", model);
 		}
+
 		Order oReal = o.get();
 		oReal.setStatus((short) 2);
 		orderRepository.save(oReal);
 
-		Product p = null;
+		// Update product quantities
 		List<OrderDetail> listDe = orderDetailRepository.findByOrderId(id);
 		for (OrderDetail od : listDe) {
-			p = od.getProduct();
+			Product p = od.getProduct();
 			p.setQuantity(p.getQuantity() - od.getQuantity());
 			productRepository.save(p);
 		}
 
 		return new ModelAndView("forward:/admin/orders", model);
 	}
+
 
 	// to excel
 	@GetMapping(value = "/export")
